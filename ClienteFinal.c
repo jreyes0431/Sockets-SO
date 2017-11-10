@@ -39,21 +39,31 @@ int main(int argc , char *argv[]){
     }
     puts("Mensaje del servidor: ");
     puts(server_reply);
-
+ 
 
     while( read_size=recv(socket_desc, server_reply , 2000 , 0) > 0){
         puts("Mensaje del servidor: \n");
         puts(server_reply);
         fflush(stdout);
+        fflush(stdin);
         scanf("%s",elec);
         if(atoi(elec)==4){
             puts("La conexion finalizara en breve, te esperamos de vuelta pronto");
             close(socket_desc);
             return 0;
         }
-        if( send(socket_desc , elec , strlen(elec) , 0) < 0){
-            puts("Envio fallido");
-            return 1;
+        if(atoi(elec)!=3){
+            if((send(socket_desc , elec , strlen(elec) , 0) < 0)){
+                puts("Envio fallido");
+                return 1;
+            }   
+        }
+        if(atoi(elec)==3){
+            printf("Ingresa el mensaje a guardar: \n");
+            if((send(socket_desc , elec , strlen(elec) , 0) < 0)){
+                puts("Envio fallido");
+                return 1;
+            } 
         }
         puts("Data send");
         fflush(stdin);
@@ -64,13 +74,3 @@ int main(int argc , char *argv[]){
     }
     return 0;
 }
-
-//Send some data
-    /*message = "GET / HTTP/1.1\r\n\r\n";
-    if( send(socket_desc , message , strlen(message) , 0) < 0){
-        puts("Send failed");
-        return 1;
-    }
-    puts("Data Send\n");
-     */
-    //Receive a reply from the server

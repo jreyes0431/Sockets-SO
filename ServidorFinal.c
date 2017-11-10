@@ -9,7 +9,7 @@
 pthread_mutex_t mutex;
 char *c="voy a escribir esto mucho\n";
 int a=0;
-FILE *ficheroM;
+FILE *ficheroM, *ficheroMM;
 
 void *connection_handler(void *);
 int main(int argc , char *argv[]){
@@ -82,33 +82,56 @@ void *connection_handler(void *socket_desc){
     char *message , client_message[2000], *otroM, message1[600];
      
     //Enviando mensaje al cliente
-    message = "\nSoy el operador de menu, a continuacion procedere a mostrarlo en pantalla\n 1-Ver datos metereologicos y comentarios\n 2-Comentar datos metereologicos\n 3-Mensaje broadcast\n 4-Salir\n";
+    message = "\nSoy el operador de menu, a continuacion procedere a mostrarlo en pantalla\n 1-Ver datos metereologicos y comentarios\n 2-Comentar datos metereologicos\n 3-Mensaje lectura\n 4-Salir\n";
     write(sock , message , strlen(message));
-     
+     fflush(stdout);
+     fflush(stdin);
+     int aux=0;
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
-        fflush(stdout);
         if(atoi(client_message)==1){
+            pthread_mutex_lock(&mutex);
             ficheroM = fopen("DatosMDia.txt","r");
             if(ficheroM==NULL){
                 otroM=("No se pudo abrir el fichero o este esta vacio");
+                aux=0;
                 write(sock , otroM , strlen(otroM));
             }
             while(!feof(ficheroM)){
                 fgets(message1,500,ficheroM);
             }
-            write(sock , &message1 , strlen(message1));   
+            fclose(ficheroM);
+            aux=0;
+            write(sock , &message1 , strlen(message1));
+            pthread_mutex_unlock(&mutex);   
         }
         else if(atoi(client_message)==2){
             otroM = "Seleccionaste 2\n";
+            aux=0;
             write(sock , otroM , strlen(otroM));            
+        }
+        else if(aux==1){
+            pthread_mutex_lock(&mutex);
+            ficheroMM= fopen("OrdenLectura.txt","w");
+            if(ficheroMM==NULL){
+                otroM=("No se pudo escribir, intente de nuevo más tarde");
+            }
+            fprintf(ficheroMM,"El mensaje es: %s\n",client_message);
+            otroM=("El mensaje fue guardado de forma exitosa\n");
+            fclose(ficheroMM);
+            aux=0;
+            write(sock , otroM , strlen(otroM));
+            pthread_mutex_unlock(&mutex);           
         }
         else if(atoi(client_message)==3){
-            otroM = "Seleccionaste 3\n";
-            write(sock , otroM , strlen(otroM));            
+            otroM= "Prepara tu mensaje!\n";
+            aux=1;
+            write(sock , otroM , strlen(otroM));
         }
+        
         else if ((atoi(client_message) != 3) && (atoi(client_message) != 2 ) && (atoi(client_message) != 1)  && (atoi(client_message) != 4)){
             otroM=("Eleccion invalida, ingresa un valor del menu \n");
+            aux=0;
             write(sock , otroM , strlen(otroM)); 
         }
     }
