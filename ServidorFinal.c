@@ -6,10 +6,14 @@
 #include<unistd.h>    //write
 #include<pthread.h> //for threading , link with lpthread
  
+pthread_mutex_t mutex;
+char *c="voy a escribir esto mucho\n";
+int a=0;
+
 void *connection_handler(void *);
- 
 int main(int argc , char *argv[]){
     system("clear");
+    pthread_mutex_init(&mutex,NULL);
     int socket_desc , new_socket , c , *new_sock;
     struct sockaddr_in server , client;
     char *message;
@@ -77,21 +81,27 @@ void *connection_handler(void *socket_desc){
     char *message , client_message[2000], *otroM;
      
     //Enviando mensaje al cliente
-    message = "Buenas noticias! El operador de menu ha llegado, a continuacion procedere a mostrarlo en pantalla\n 1- \n 2-\n 3- \n 4- \n";
+    message = "Buenas noticias! El operador de menu ha llegado, a continuacion procedere a mostrarlo en pantalla\n 1-Ver datos metereologicos y comentarios\n 2-Comentar datos metereologicos\n 3-Mensaje broadcast\n 4-Salir\n";
     write(sock , message , strlen(message));
      
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
         if(atoi(client_message)==1){
-            otroM = "Seleccionaste 1";
-            write(sock , otroM , strlen(otroM));    
+            otroM = "Seleccionaste 1\n Realizare una suma para evaluar el mutex\n";
+            for(int i=0;i<100000000;i++){
+                pthread_mutex_lock(&mutex);
+                char c=c+a;
+                a++;
+                pthread_mutex_unlock(&mutex);
+            }
+            write(sock , c , strlen(c));    
         }
         else if(atoi(client_message)==2){
-            otroM = "Seleccionaste 2";
+            otroM = "Seleccionaste 2\n";
             write(sock , otroM , strlen(otroM));            
         }
         else if(atoi(client_message)==3){
-            otroM = "Seleccionaste 3";
+            otroM = "Seleccionaste 3\n";
             write(sock , otroM , strlen(otroM));            
         }
     }

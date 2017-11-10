@@ -31,6 +31,7 @@ int main(int argc , char *argv[]){
      
     puts("Conexion exitosa\n");
     char *elec[1];
+    int read_size;
 
     //Recibe el segundo mensaje, necesario antes del while
     if(recv(socket_desc, server_reply , 2000 , 0) < 0){
@@ -40,16 +41,25 @@ int main(int argc , char *argv[]){
     puts(server_reply);
 
 
-    while( recv(socket_desc, server_reply , 2000 , 0) > 0){
+    while( read_size=recv(socket_desc, server_reply , 2000 , 0) > 0){
         puts("Mensaje del servidor: \n");
         puts(server_reply);
         scanf("%s",elec);
+        if(atoi(elec)==4){
+            puts("La conexion finalizara en breve, te esperamos de vuelta pronto");
+            close(socket_desc);
+            return 0;
+        }
         if( send(socket_desc , elec , strlen(elec) , 0) < 0){
             puts("Envio fallido");
             return 1;
         }
         puts("Data Send\n");
         fflush(stdin);
+    }
+    if(read_size == 0){
+        puts("El servidor se ha desconectado, intente de nuevo mas tarde");
+        fflush(stdout);
     }
     return 0;
 }
