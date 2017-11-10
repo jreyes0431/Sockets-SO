@@ -44,6 +44,7 @@ int main(int argc , char *argv[]){
     while( read_size=recv(socket_desc, server_reply , 2000 , 0) > 0){
         puts("Mensaje del servidor: \n");
         puts(server_reply);
+        fflush(stdout);
         scanf("%s",elec);
         if(atoi(elec)==4){
             puts("La conexion finalizara en breve, te esperamos de vuelta pronto");
@@ -54,7 +55,7 @@ int main(int argc , char *argv[]){
             puts("Envio fallido");
             return 1;
         }
-        puts("Data Send\n");
+        puts("Data send");
         fflush(stdin);
     }
     if(read_size == 0){

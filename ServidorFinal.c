@@ -9,6 +9,7 @@
 pthread_mutex_t mutex;
 char *c="voy a escribir esto mucho\n";
 int a=0;
+FILE *ficheroM;
 
 void *connection_handler(void *);
 int main(int argc , char *argv[]){
@@ -78,23 +79,25 @@ void *connection_handler(void *socket_desc){
     
     int sock = *(int*)socket_desc;
     int read_size;
-    char *message , client_message[2000], *otroM;
+    char *message , client_message[2000], *otroM, message1[600];
      
     //Enviando mensaje al cliente
-    message = "Buenas noticias! El operador de menu ha llegado, a continuacion procedere a mostrarlo en pantalla\n 1-Ver datos metereologicos y comentarios\n 2-Comentar datos metereologicos\n 3-Mensaje broadcast\n 4-Salir\n";
+    message = "\nSoy el operador de menu, a continuacion procedere a mostrarlo en pantalla\n 1-Ver datos metereologicos y comentarios\n 2-Comentar datos metereologicos\n 3-Mensaje broadcast\n 4-Salir\n";
     write(sock , message , strlen(message));
      
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
+        fflush(stdout);
         if(atoi(client_message)==1){
-            otroM = "Seleccionaste 1\n Realizare una suma para evaluar el mutex\n";
-            for(int i=0;i<100000000;i++){
-                pthread_mutex_lock(&mutex);
-                char c=c+a;
-                a++;
-                pthread_mutex_unlock(&mutex);
+            ficheroM = fopen("DatosMDia.txt","r");
+            if(ficheroM==NULL){
+                otroM=("No se pudo abrir el fichero o este esta vacio");
+                write(sock , otroM , strlen(otroM));
             }
-            write(sock , c , strlen(c));    
+            while(!feof(ficheroM)){
+                fgets(message1,500,ficheroM);
+            }
+            write(sock , &message1 , strlen(message1));   
         }
         else if(atoi(client_message)==2){
             otroM = "Seleccionaste 2\n";
@@ -103,6 +106,10 @@ void *connection_handler(void *socket_desc){
         else if(atoi(client_message)==3){
             otroM = "Seleccionaste 3\n";
             write(sock , otroM , strlen(otroM));            
+        }
+        else if ((atoi(client_message) != 3) && (atoi(client_message) != 2 ) && (atoi(client_message) != 1)  && (atoi(client_message) != 4)){
+            otroM=("Eleccion invalida, ingresa un valor del menu \n");
+            write(sock , otroM , strlen(otroM)); 
         }
     }
      
