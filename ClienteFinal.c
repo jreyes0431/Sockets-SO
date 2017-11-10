@@ -28,7 +28,7 @@ int main(int argc , char *argv[]){
         puts("Error de Conexión");
         return 1;
     }
-     
+    fflush(stdout);
     puts("Conexion exitosa\n");
     char *elec[1];
     int read_size;
@@ -39,7 +39,7 @@ int main(int argc , char *argv[]){
     }
     puts("Mensaje del servidor: ");
     puts(server_reply);
- 
+    fflush(stdout);
 
     while( read_size=recv(socket_desc, server_reply , 2000 , 0) > 0){
         puts("Mensaje del servidor: \n");

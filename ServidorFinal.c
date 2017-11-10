@@ -7,8 +7,6 @@
 #include<pthread.h> //for threading , link with lpthread
  
 pthread_mutex_t mutex;
-char *c="voy a escribir esto mucho\n";
-int a=0;
 FILE *ficheroM, *ficheroMM;
 
 void *connection_handler(void *);
@@ -79,10 +77,12 @@ void *connection_handler(void *socket_desc){
     
     int sock = *(int*)socket_desc;
     int read_size;
-    char *message , client_message[2000], *otroM, message1[600];
+    char *message ; 
+    char client_message[2000]; 
+    char *otroM, message1[1500];
      
     //Enviando mensaje al cliente
-    message = "\nSoy el operador de menu, a continuacion procedere a mostrarlo en pantalla\n 1-Ver datos metereologicos y comentarios\n 2-Comentar datos metereologicos\n 3-Mensaje lectura\n 4-Salir\n";
+    message = "\nSoy el operador de menu, a continuacion procedere a mostrarlo en pantalla\n 1-Ver datos metereologicos y comentarios\n 2-Ver mensaje de lectura\n 3-Mensaje lectura\n 4-Salir\n";
     write(sock , message , strlen(message));
      fflush(stdout);
      fflush(stdin);
@@ -91,7 +91,24 @@ void *connection_handler(void *socket_desc){
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ){
         if(atoi(client_message)==1){
             pthread_mutex_lock(&mutex);
+            fflush(stdout);
             ficheroM = fopen("DatosMDia.txt","r");
+            if(ficheroM==NULL){
+                otroM=("No se pudo abrir el fichero o este esta vacio");
+                aux=0;
+                write(sock , otroM , strlen(otroM));
+            }
+            while(!feof(ficheroM)){
+                fgets(message1,1500,ficheroM);
+            }
+            fclose(ficheroM);
+            aux=0;
+            write(sock , &message1 , strlen(message1));
+            pthread_mutex_unlock(&mutex);   
+        }
+        else if(atoi(client_message)==2){
+            pthread_mutex_lock(&mutex);
+            ficheroM = fopen("OrdenLectura.txt","r");
             if(ficheroM==NULL){
                 otroM=("No se pudo abrir el fichero o este esta vacio");
                 aux=0;
@@ -103,12 +120,7 @@ void *connection_handler(void *socket_desc){
             fclose(ficheroM);
             aux=0;
             write(sock , &message1 , strlen(message1));
-            pthread_mutex_unlock(&mutex);   
-        }
-        else if(atoi(client_message)==2){
-            otroM = "Seleccionaste 2\n";
-            aux=0;
-            write(sock , otroM , strlen(otroM));            
+            pthread_mutex_unlock(&mutex);            
         }
         else if(aux==1){
             pthread_mutex_lock(&mutex);
